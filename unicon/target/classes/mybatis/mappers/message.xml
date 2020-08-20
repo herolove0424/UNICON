@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.unicon.mappers.Message_Mapper">
+	<resultMap id="Message_Result" type="message_VO">
+		<result property="id" column="id"/>
+ 		<result property="title" column="title"/>
+ 		<result property="content" column="content"/>
+ 		<result property="send_id" column="send_id"/>
+ 		<result property="readyn" column="readyn"/>
+ 		<result property="sendday" column="sendday"/>
+ 		<result property="messagenum" column="messagenum"/>
+ 		<result property="exposeyn" column="exposeyn"/>
+ 	</resultMap>
+ 	
+ 	<insert id="messageInsert" parameterType="message_VO">
+ 		<![CDATA[
+ 			insert into MESSAGE_BOX(id,title,content,send_id,readyn,sendday,messagenum,exposeyn) values(#{id},#{title},#{content},#{send_id},default,default,MESSAGENUM_SEQ.nextval,default)
+ 		]]>	
+ 	</insert>
+ 	
+ 	<select id="countRemainMessage" resultType="int" parameterType="String">
+ 		<![CDATA[
+ 			select count(*) from MESSAGE_BOX where id=#{id} and readyn=1 and exposeyn=1
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="lookMessage" parameterType="String" resultMap="Message_Result">
+ 		<![CDATA[
+ 			select * from MESSAGE_BOX where id=#{id} and exposeyn=1 order by sendday desc
+ 		]]>
+ 	</select>
+ 	
+ 	<update id="delMessage">
+ 		<![CDATA[
+ 			update MESSAGE_BOX set exposeyn=0 where id=#{id} and messagenum=#{messagenum}
+ 		]]>
+ 	</update>
+ 	
+ 	<select id="lookSendMessage" parameterType="String" resultMap="Message_Result">
+ 		<![CDATA[
+ 			select * from MESSAGE_BOX where send_id=#{send_id} order by sendday desc
+ 		]]>
+ 	</select>
+ 	
+ 	<delete id="delSendMessage">
+ 		<![CDATA[
+ 			delete from MESSAGE_BOX where send_id=#{send_id} and messagenum=#{messagenum}
+ 		]]>
+ 	</delete>
+ 	
+ 	<select id="detailMessage" resultMap="Message_Result">
+ 		<![CDATA[
+ 			select * from MESSAGE_BOX where id=#{id} and messagenum=#{messagenum}
+ 		]]>
+ 	</select>
+ 	
+ 	<update id="updateDetailMessage">
+ 		<![CDATA[
+ 			update MESSAGE_BOX set readyn=0 where id=#{id} and messagenum=#{messagenum}
+ 		]]>
+ 	</update>
+ 	
+ 	<select id="detailSendMessage" resultMap="Message_Result">
+ 		<![CDATA[
+ 			select * from MESSAGE_BOX where send_id=#{send_id} and messagenum=#{messagenum}
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="replyMessage" resultType="String">
+ 		<![CDATA[
+ 			select send_id from MESSAGE_BOX where id=#{id} and messagenum=#{messagenum}
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="searchIdUsingNick" parameterType="String" resultType="String">
+ 		<![CDATA[select id from member where nickname=#{nickname}]]>
+ 	</select>
+ 	
+	
+</mapper>

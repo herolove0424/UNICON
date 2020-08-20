@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.project.unicon.mappers.Notice_Mapper">
+  	<resultMap id="notice_Result" type="notice_VO">
+ 		<result property="boardno" column="boardno"/>
+ 		<result property="title" column="title"/>
+ 		<result property="content" column="content"/>
+ 		<result property="writedate" column="writedate"/>
+ 		<result property="viewcount" column="viewcount"/>
+ 		<result property="exposal" column="exposal"/>
+ 		<result property="id" column="id"/>
+ 	</resultMap>
+ 	
+ 	<!-- 3차개발 -->
+ 	<!-- 공지사항 글번호 가져오기 -->
+ 	<select id="noticeBoardNo" resultType="int">
+ 		<![CDATA[select ADMIN_NOTICE_SEQ.nextval from dual]]>
+ 	</select>
+ 	
+ 	<!-- 공지사항 등록 -->
+ 	<insert id="noticeInsert" parameterType="notice_VO">
+ 		<![CDATA[
+ 			insert into admin_notice values (#{boardno},#{title},#{content},default,default,default,#{id})
+ 		]]>
+ 	
+ 	</insert>
+ 	
+ 	<!-- 검색기능 where 절 -->
+ 	<sql id="noticeSearchCondition">
+	<where>
+		<choose>
+			<when test="searchType == null">
+				(boardNO !=0)
+				
+				<!-- <choose>
+				
+   					<when test="searchKeyword==null">
+   						(boardNO !=0)
+   					</when>
+   				
+	   				<when test="searchKeyword!=null">
+	   					(boardNO !=0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR   (content LIKE '%'||#{searchKeyword}||'%')
+												  OR   (id LIKE '%'||#{searchKeyword}||'%'))
+	   				</when>
+   				</choose> -->
+			</when>
+			<when test="searchType == 'T'.toString()">
+				(boardNO !=0) AND (title LIKE '%'||#{searchKeyword}||'%')
+			</when>
+			<when test="searchType == 'C'.toString()">
+				(boardNO !=0) AND (content LIKE '%'||#{searchKeyword}||'%')
+			</when>
+			<when test="searchType == 'I'.toString()">
+				(boardNO !=0) AND (id LIKE '%'||#{searchKeyword}||'%')
+			</when>
+			<when test="searchType == 'TC'.toString()">
+				(boardNO !=0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR  (content LIKE '%'||#{searchKeyword}||'%'))
+			</when>
+			<when test="searchType == 'TI'.toString()">
+				(boardNO !=0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR   (id LIKE '%'||#{searchKeyword}||'%'))
+			</when>
+			<when test="searchType == 'TCI'.toString()">
+				(boardNO !=0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR   (content LIKE '%'||#{searchKeyword}||'%')
+												  OR   (id LIKE '%'||#{searchKeyword}||'%'))
+			</when>
+		</choose>
+	</where>
+	</sql>
+ 	
+ 	
+ 	<!-- 공지사항 총 행 갯수 구하기 -->
+ 	<select id="AllNoticeRows" resultType="int">
+ 		<![CDATA[
+ 			select count(*) from admin_notice
+ 		]]>
+ 		
+ 		<include refid="noticeSearchCondition" />
+ 	</select>
+ 	
+ 	<!-- 페이징 검색 모든 경우.  -->
+	<select id="selectAllNoticeSearchedBoardsWithPaging" resultMap="notice_Result">
+         <![CDATA[SELECT boardno, title, content, id, writedate, viewcount,exposal
+             FROM ( SELECT *
+                  FROM ( SELECT  /*+ INDEX_DESC(admin_notice SYS_C0012245) */
+                        rownum recordno, admin_notice.*
+                       FROM gmUnicon.admin_notice
+                       ]]>
+                       
+               <include refid="noticeSearchCondition"></include>
+               order by exposal desc,writedate desc
+               
+         <![CDATA[
+         ) WHERE recordno <= #{currentPageNo} * #{recordsPerPage})
+             WHERE recordno >= (#{currentPageNo} * #{recordsPerPage})-(#{recordsPerPage}-1)]]>
+   
+   </select>
+   
+   	<!-- 페이지 뷰 설정 -->
+   	<update id="noticeViewCount" parameterType="int">
+   		<![CDATA[
+   			UPDATE gmUnicon.admin_notice SET viewcount = viewcount + 1
+				  WHERE boardno = #{boardno}
+   		]]>
+   	</update>
+   	
+   	<!-- 공지사항 상세 내용 조회 -->
+   	<select id="detailNotice" resultType="notice_VO" parameterType="int">
+   		<![CDATA[ SELECT *
+		FROM gmUnicon.admin_notice
+		WHERE boardno = #{boardno} ]]>
+   	</select>
+   	
+   	
+   	<!-- 공지 수정 -->
+   	<update id="modNotice" parameterType="notice_VO">
+		<![CDATA[ UPDATE gmUnicon.admin_notice SET title=#{title}, content=#{content},exposal=#{exposal}
+				  WHERE boardno=#{boardno} ]]>
+	</update>
+   	
+   	
+   	<!-- 공지 삭제 -->
+   	<delete id="delNotice" parameterType="int">
+		<![CDATA[ DELETE FROM admin_notice WHERE boardno = #{boardno} ]]>
+	</delete>
+   	
+   	
+   	<!-- 0810 등록, 오늘 등록된 게시글 -->
+   	<select id="todayRegistBoard" resultType="int">
+   		<![CDATA[ 
+			select count(*) from(
+			SELECT * FROM free_board 
+			UNION ALL
+			SELECT * from mobile_board
+			UNION ALL
+			SELECT * FROM pc_board 
+			UNION ALL 
+			SELECT  boardNO, title, content, writedate,viewcount, good, id, parentNO,status from console_board) 
+			where to_char(writedate,'yy/MM/dd')=to_char(sysdate, 'yy/MM/dd')
+		 ]]>	
+   	</select>
+   	
+   	<!-- 어제 등록된 게시글 -->
+   	<select id="lastDayRegistBoard" resultType="int">
+   		<![CDATA[ 
+			select count(*) from(
+			SELECT * FROM free_board 
+			UNION ALL
+			SELECT * from mobile_board
+			UNION ALL
+			SELECT * FROM pc_board 
+			UNION ALL 
+			SELECT  boardNO, title, content, writedate,viewcount, good, id, parentNO,status from console_board) 
+			where to_char(writedate,'yy/MM/dd')=to_char(sysdate-1, 'yy/MM/dd')
+		 ]]>	
+   	</select>
+   	
+   	
+ 	
+  </mapper>

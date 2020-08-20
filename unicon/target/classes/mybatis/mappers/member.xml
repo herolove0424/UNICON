@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.unicon.mappers.Member_Mapper">
+	<resultMap id="MemberResult" type="memberVO">
+		<result property="id" column="id" />
+		<result property="password" column="password" />
+		<result property="nickname" column="nickname" />
+		<result property="email" column="email" />
+		<result property="join_date" column="join_date" />
+		<result property="del_date" column="del_date" />
+		<result property="grade" column="grade" />
+		<result property="name" column="name" />
+		<result property="phone_number" column="phone_number" />
+		<result property="birthday" column="birthday" />
+		<result property="sex" column="sex" />
+		<result property="imageFileName" column="imageFileName" />
+		<result property="originalFileName" column="originalFileName" />
+		<result property="small_category" column="small_category" />
+		<result property="genre1" column="genre1" />
+		<result property="genre2" column="genre2" />
+		<result property="hashtag1" column="hashtag1" />
+		<result property="hashtag2" column="hashtag2" />
+		<result property="hashtag3" column="hashtag3" />
+		<result property="play_type" column="play_type" />
+	</resultMap>
+	
+	<resultMap type="jjimVO" id="jjimVO">
+		<result property="id" column="id" />
+		<result property="game_code" column="game_code" />
+		<result property="game_name" column="game_name" />
+		<result property="small_category" column="small_category" />
+	</resultMap>
+	
+	<resultMap id="pcboardvo" type="Pc_Board_VO">
+		<result property="title" column="title" />
+		<result property="boardNO" column="boardNO" />
+		<result property="writeDate" column="writeDate" />
+		<result property="viewCount" column="viewCount" />
+	</resultMap>
+
+	<resultMap id="mobileboardvo" type="Mobile_Board_VO">
+		<result property="title" column="title" />
+		<result property="boardNO" column="boardNO" />
+		<result property="writeDate" column="writeDate" />
+		<result property="viewCount" column="viewCount" />
+	</resultMap>
+	
+	<resultMap id="consoleboardvo" type="Console_Board_VO">
+		<result property="title" column="title" />
+		<result property="boardNO" column="boardNO" />
+		<result property="writeDate" column="writeDate" />
+		<result property="viewCount" column="viewCount" />
+		<result property="platform" column="platform" />
+	</resultMap>
+	
+	<resultMap id="freeboardvo" type="Free_Board_VO">
+		<result property="title" column="title" />
+		<result property="boardNO" column="boardNO" />
+		<result property="writeDate" column="writeDate" />
+		<result property="viewCount" column="viewCount" />
+	</resultMap>
+	<!-- 0804김도경추가 -->
+	<resultMap id="member_Board_Result" type="all_Board_VO">
+ 		<result property="boardNO" column="boardNO"/>
+ 		<result property="title" column="title"/>
+ 		<result property="content" column="content"/>
+ 		<result property="writeDate" column="writeDate"/>
+ 		<result property="viewCount" column="viewCount"/>
+ 		<result property="good" column="good"/>
+ 		<result property="id" column="id"/>
+ 		<result property="parentNO" column="parentNO"/>
+ 		<result property="status" column="status"/>
+ 	</resultMap>
+
+
+	<!-- 스프링 부트 개발 -->
+	<!-- 회원 가입 -->
+
+	<!-- <select id="loginById" resultType="memberVO"
+		parameterType="memberVO">
+ 		<![CDATA[
+			SELECT * 
+			FROM member 
+			WHERE id=#{id} AND password=#{password} AND grade = 0
+ 		]]>
+	</select> -->
+	
+	<!-- 관리자 로그인 가능하게 수정: 0706 김도경 -->
+	<select id="loginById" resultType="memberVO"
+		parameterType="memberVO">
+ 		<![CDATA[
+			SELECT * 
+			FROM member 
+			WHERE id=#{id} AND password=#{password}
+ 		]]>
+	</select>
+	
+	<select id="getinforecomende" resultType="memberVO"
+		parameterType="memberVO">
+ 		<![CDATA[
+			SELECT * 
+			FROM member_recommend
+			WHERE id=#{id}
+ 		]]>
+	</select>
+
+	<select id="getplaytype" resultType="String"
+		parameterType="String">
+ 		<![CDATA[
+			SELECT play_type
+			FROM member_recommend
+			WHERE id=#{id}
+ 		]]>
+	</select>
+
+	<select id="getsmallcategory" resultType="String"
+		parameterType="String">
+ 		<![CDATA[
+			SELECT small_category
+			FROM member_recommend
+			WHERE id=#{id}
+ 		]]>
+	</select>
+
+	<!-- 아이디 중복 검사 -->
+	<select id="selectOverlappedID" parameterType="String" resultType="int">
+		<![CDATA[
+			SELECT count(*)
+			FROM member
+			WHERE id = #{id}
+		]]>
+	</select>
+
+	<!-- 닉네임 중복 검사 -->
+	<select id="selectOverlappedNCIKNAME" parameterType="String" resultType="int">
+		<![CDATA[
+			SELECT count(*)
+			FROM member
+			WHERE nickname = #{nickname}
+		]]>
+	</select>
+
+	<!-- 이메일 중복 검사 -->
+	<select id="selectOverlappedEMAIL" parameterType="String" resultType="int">
+		<![CDATA[
+			SELECT count(*)
+			FROM member
+			WHERE email = #{email}
+		]]>
+	</select>
+
+	<!-- 전화번호 중복 검사 -->
+	<select id="selectOverlappedPHONE" parameterType="String" resultType="int">
+		<![CDATA[
+			SELECT count(*)
+			FROM member
+			WHERE phone_number = #{phone_number}
+		]]>
+	</select>
+	<!-- 회원가입 -->
+	<insert id="insertMember" parameterType="memberVO">
+ 		<![CDATA[
+ 			INSERT into member(id, password, nickname, email, join_date, del_date, grade, name, phone_number, birthday, sex)
+        	VALUES(#{id}, #{password}, #{nickname}, #{email}, DEFAULT, DEFAULT, DEFAULT, #{name}, #{phone_number}, #{birthday}, #{sex})
+ 		]]>
+	</insert>
+
+	<!-- 아이디 찾기 -->
+	<select id="findid" parameterType="memberVO" resultType="String">
+		<![CDATA[
+			SELECT id
+			FROM member
+			WHERE name=#{name} and email=#{email}
+		]]>
+	</select>
+	
+	<!-- 비밀번호 찾기 -->
+	<select id="findpw" parameterType="memberVO" resultType="String">
+		<![CDATA[
+		select id from member where name=#{name} and id=#{id} and email=#{email}
+		]]>
+	</select>
+	<!-- 새 비밀번호 부여 -->
+	<update id="pwfind2" parameterType="memberVO">
+	<![CDATA[
+	update member set password = #{password} where id=#{id}
+	]]>
+	</update>
+	<select id="mypagepw" parameterType="memberVO" resultType="String">
+	<![CDATA[
+	select password from member where password=#{password} and id=#{id}
+	]]>
+	</select>
+	
+	<!-- 잃어버린 폰번호 강제로 가져오기 -->
+	<select id="gethp" parameterType="String" resultType="String">
+		select phone_number from member where id = #{id}
+	</select>
+	
+	<!-- 이미지넣기  및  마이페이지 수정-->
+	<update id="modify" parameterType="memberVO">
+		update member set nickname = #{nickname} , email = #{email} , phone_number = #{phone_number}
+		<if test="imageFileName != '' and imageFileName != null">
+		  , imageFileName = #{imageFileName, jdbcType=VARCHAR} 
+		</if>
+		where id=#{id}
+	</update>
+	
+	<!-- 마이페이지에서 비밀번호변경 -->	
+	<update id="pwmodify" parameterType="memberVO">
+	<![CDATA[
+	update member set password = #{password} where id=#{id}
+	]]>
+	</update>
+	
+	<!-- 김도경 추가: 200706 -->
+	
+	<!-- 로그인 시 사용 -->
+ 	<select id="loginInfo" resultType="memberVO" parameterType="memberVO" >
+ 	<![CDATA[
+ 	select * from gmunicon.member 
+ 	where id=#{id} and password=#{password} and grade in (1,2)
+ 	]]>
+ 	</select>
+ 	
+ 	<!-- 지정 검색 조건으로 검색 -->
+ 	<select id="member_Search" resultMap="MemberResult" parameterType="java.util.Map">
+ 	<![CDATA[select * from gmunicon.member]]>
+ 		
+ 		<where>
+ 			<choose>
+ 			
+ 			<when test="search_Option=='member_Id'">
+ 				id like '%' || #{search_Keyword} || '%'
+ 			</when>
+ 			
+ 			<when test="search_Option=='member_Name'">
+ 				name like '%' || #{search_Keyword} || '%'
+ 			</when>
+ 			
+ 			<when test="search_Option=='member_Phone_Number'">
+ 				phone_Number like '%' || #{search_Keyword} || '%'
+ 			</when>
+ 			
+ 			<when test="search_Option=='member_Email'">
+ 				email like '%' || #{search_Keyword} || '%'
+ 			</when>
+ 			
+ 			
+ 			</choose>
+ 		
+ 		</where>
+ 	
+ 	</select>
+ 	
+ 	<!-- resultMap과 resultType의 차이 resultType은 db컬럼명과 동일해야지만 데이터 binding가능/ 
+ 	resultMap은 달라도 가능  -->
+ 	<!-- 상세 회원 정보 검색 -->
+ 	<select id="member_Detail_Search" resultMap="MemberResult" parameterType="String">
+ 		<![CDATA[select * from member m inner join member_recommend r on (m.id =r.id) where m.id=#{id}]]>
+ 	</select>
+ 	
+ 	<!-- 20200728 김도경 추가 -->
+ 	<!-- 2차 개발 0707 -->
+ 	<select id="manager_Id_Check" parameterType="String" resultType="int">
+ 		<![CDATA[
+ 			select count(*) from gmunicon.member where id=#{id}
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="manager_Phone_Check" parameterType="String" resultType="int">
+ 		<![CDATA[
+ 			select count(*) from gmunicon.member where phone_number=#{phone_number}
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="manager_Seq_Num" resultType="int">
+ 	<![CDATA[
+ 		select MEMEBER_MANAGER_SEQ.nextval from dual
+ 	]]>
+ 	</select>
+ 	
+ 	<!--진우꺼 가져옴 합칠떄는 삭제하고 기존꺼 사용> ㄴㄴㄴㄴ 진우랑 상의해서 grade #{grade}로 쓸수있도록-->
+ 	<!-- 권한 생성 0731 김도경 수정 -->
+ 	<insert id="insertManagerMember" parameterType="memberVO">
+ 		<![CDATA[
+ 			INSERT into member(id, password, nickname, email, join_date, del_date, grade, name, phone_number, birthday, sex,certification)
+ 			VALUES(#{id}, #{password}, #{nickname}, #{email}, DEFAULT, DEFAULT, #{grade}, #{name}, #{phone_number}, null, null,'Y')
+        	
+ 		]]>
+	</insert>
+	<!-- 권한 생성시 현재 로그인 관리자 비밀번호 재확인 -->
+	<select id="confirm_Password" parameterType="java.util.Map" resultType="int">
+		<![CDATA[
+			select count(*) from member where id=#{id} and password=#{password}
+		]]>
+	</select>
+	
+	<!-- 목록 출력 -->
+	<select id="selectAuthorList" resultMap="MemberResult">
+		<![CDATA[
+			select * from member where grade !=0 order by grade DESC , join_date desc
+		]]>
+	</select>
+	
+	<!-- 권한 삭제 -->
+	<delete id="deleteAuthor" parameterType="String">
+		<![CDATA[
+			delete from member where grade !=0 and id=#{id}
+		]]>
+	</delete>
+	
+	<update id="updateAuthorPw" parameterType="String">
+		<![CDATA[
+			update member set password=#{password} where id=#{id} and grade!=0
+		]]>
+	</update>
+	
+	<!-- 회원 인증키(난수) 생성 -->
+ 	<insert id="makeKey" parameterType="map">
+ 		<![CDATA[ 		
+	 		UPDATE gmunicon.member
+	 		SET certification = #{key}
+	 		WHERE id = #{id}
+ 		]]> 
+ 	</insert>
+ 	
+ 	<!-- 회원 인증키(난수) Y로 변경 -->
+ 	<update id="change_Key" parameterType="map">
+ 		<![CDATA[
+ 			UPDATE gmunicon.member
+ 			SET certification = 'Y'
+ 			WHERE id = #{id} AND certification = #{key}
+ 		]]>
+ 	</update>
+ 	
+ 	<!-- 이메일 인증 체크 -->
+ 	<select id="email_check" parameterType="map" resultType="Integer">
+ 		<![CDATA[
+ 			SELECT COUNT(*)
+ 			FROM gmunicon.member
+ 			WHERE id = #{id} AND certification = 'Y'
+ 		]]>
+ 	</select>
+	
+	<insert id="recommendinsert" parameterType="memberVO">
+		<![CDATA[
+			INSERT INTO gmunicon.member_recommend (id, small_category, genre1, genre2, hashtag1, hashtag2, hashtag3, play_type)
+			VALUES (#{id}, #{small_category, jdbcType=VARCHAR}, #{genre1, jdbcType=VARCHAR}, #{genre2, jdbcType=VARCHAR}, #{hashtag1, jdbcType=VARCHAR}, #{hashtag2, jdbcType=VARCHAR}, #{hashtag3, jdbcType=VARCHAR}, #{play_type, jdbcType=VARCHAR}) 
+		]]>
+	</insert>
+	
+	<update id="recommendmodify" parameterType="memberVO">
+ 		<![CDATA[
+ 			UPDATE gmunicon.member_recommend
+ 			SET small_category = #{small_category, jdbcType=VARCHAR}, genre1 = #{genre1, jdbcType=VARCHAR}, genre2 = #{genre2, jdbcType=VARCHAR}, hashtag1 = #{hashtag1, jdbcType=VARCHAR}, hashtag2 = #{hashtag2, jdbcType=VARCHAR}, hashtag3 = #{hashtag3, jdbcType=VARCHAR}, play_type = #{play_type, jdbcType=VARCHAR}
+ 			WHERE id = #{id}
+ 		]]>
+	</update>
+	
+	<!-- 0802 김도경 추가 권한 변경 -->
+ 	<update id="modifyAuthor">
+ 	<![CDATA[
+ 		update member set grade=#{grade} where id=#{id}
+ 	]]>
+ 	
+ 	</update>
+ 	<!-- 회원삭제 -->
+ 	<delete id="removemember" parameterType="String">
+	delete from member_recommend where id = #{id}
+	</delete>
+
+	<delete id="removemember2" parameterType="String">
+	delete from member where id = #{id}
+	</delete>
+	
+		<!-- 댓글관리 -->
+	<select id="reply" resultType="map" parameterType="String">
+ 		
+ 			select game.small_category, game.game_name, game.game_code, rew.content, rew.writedate
+			from review rew, game_info game
+			where game.game_code = rew.game_code and id = #{id}
+ 		
+	</select>
+	
+	<select id="freeboardReply" resultType="map" parameterType="String">
+ 		
+ 			select  reply.REP_BOARDNO, reply.REP_CONTENT, board.TITLE, reply.REP_WRITEDATE,reply.REP_PARENTNO
+			from free_board board, free_board_reply reply
+			where board.BOARDNO = reply.REP_PARENTNO and id = #{id}
+ 		
+	</select>
+	
+	<select id="pcboardReply" resultType="map" parameterType="String">
+ 		
+ 			select  reply.REP_BOARDNO, reply.REP_CONTENT, board.TITLE, reply.REP_WRITEDATE,reply.REP_PARENTNO
+			from pc_board board, pc_board_reply reply
+			where board.BOARDNO = reply.REP_PARENTNO and id = #{id}
+ 		
+	</select>
+	
+	<select id="mobileboardReply" resultType="map" parameterType="String">
+ 		
+ 			select  reply.REP_BOARDNO, reply.REP_CONTENT, board.TITLE, reply.REP_WRITEDATE,reply.REP_PARENTNO
+			from mobile_board board, mobile_board_reply reply
+			where board.BOARDNO = reply.REP_PARENTNO and id = #{id}
+ 		
+	</select>
+	
+	<select id="consoleboardReply" resultType="map" parameterType="String">
+ 		
+ 			select  reply.REP_BOARDNO, reply.REP_CONTENT, console.TITLE, reply.REP_WRITEDATE,reply.REP_PARENTNO
+			from console_board console, console_board_reply reply
+			where console.BOARDNO = reply.REP_PARENTNO and id = #{id}
+      
+ 		
+	</select>
+	
+	<select id="pcboard" resultMap="pcboardvo" parameterType="String">
+ 		
+ 			 select title, writedate, viewcount, boardNO
+ 			 from pc_board
+			where id = #{id}
+ 		
+	</select>
+	
+	<select id="consoleboard" resultMap="consoleboardvo" parameterType="String">
+ 		
+ 			 select platform,title, writedate, viewcount , boardNO
+ 			 from console_board
+			where id = #{id}
+ 		
+	</select>
+	
+	<select id="mobileboard" resultMap="mobileboardvo" parameterType="String">
+ 		
+ 			 select title, writedate, viewcount , boardNO
+ 			 from mobile_board
+			where id = #{id}
+ 		
+	</select>
+	
+	<select id="freeboard" resultMap="freeboardvo" parameterType="String">
+ 		
+ 			 select title, writedate, viewcount , boardNO
+ 			 from free_board
+			where id = #{id}
+ 		
+	</select>
+	
+		<select id = "getjjim" parameterType="jjimVO" resultType="int">
+		select count(*) from member_jjim where id=#{id} and game_code = #{game_code}
+	</select>
+	
+	<insert id ="insertjjim" parameterType="jjimVO">
+	insert into member_jjim (id, game_code, game_name, small_category) values (#{id}, #{game_code}, #{game_name}, #{small_category} )
+	</insert>
+	
+	<delete id="deletejjim" parameterType="jjimVO">
+	delete from member_jjim where id = #{id} and game_code = #{game_code}
+	</delete>
+	
+	<select id="jjimlist" resultMap="jjimVO" parameterType="String">
+	select  game_code, game_name, small_category
+  from member_jjim
+  where id= #{id}
+	</select>
+	
+	<!-- 0804김도경 추가 -->
+	<!--0803추가 멤버가 쓴 글 확인하기  -->
+ 	<select id="memberActivityList" resultMap="member_Board_Result">
+ 		<![CDATA[
+ 			 select * from  (  select * from (SELECT ROWNUM recordno , A.*  FROM ( 
+            SELECT  * FROM free_board where id=#{id}
+			UNION ALL
+			SELECT * from mobile_board where id=#{id}
+			UNION ALL
+			SELECT * FROM pc_board where id=#{id}
+			UNION ALL 
+			SELECT  boardNO, title, content, writedate,viewcount, good, id, parentNO,status FROM CONSOLE_BOARD where id=#{id}
+			) A  )  WHERE recordno <= #{currentPageNo} * #{recordsPerPage} ) WHERE recordno >= (#{currentPageNo} * #{recordsPerPage})-(#{recordsPerPage}-1)
+ 		]]>
+ 	</select>
+ 	
+ 	<!-- 페이징 처리 -->
+ 	<select id="memberActivityTotalRows" resultType="int">
+ 		<![CDATA[
+ 			SELECT count(*) FROM
+			(SELECT * FROM free_board 
+			UNION ALL
+			SELECT * from mobile_board 
+			UNION ALL
+			SELECT * FROM pc_board
+			UNION ALL 
+			SELECT boardNO, title, content, writedate,viewcount, good, id, parentNO,status FROM CONSOLE_BOARD
+			)WHERE id =#{id}
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="searchFreeboard" resultType="int" parameterType="all_Board_VO">
+ 		<![CDATA[
+ 			select count(*) from free_board 
+ 			where id=#{id} and boardNO=#{boardNO} and title=#{title}
+ 		]]>
+ 	</select>
+ 	<select id="searchMobileboard" resultType="int" parameterType="all_Board_VO">
+ 		<![CDATA[
+ 			select count(*) from mobile_board 
+ 			where id=#{id} and boardNO=#{boardNO} and title=#{title}
+ 		]]>
+ 	</select>
+ 	<select id="searchPcboard" resultType="int" parameterType="all_Board_VO">
+ 		<![CDATA[
+ 			select count(*) from pc_board 
+ 			where id=#{id} and boardNO=#{boardNO} and title=#{title}
+ 		]]>
+ 	</select>
+ 	<select id="searchConsoleboard" resultType="int" parameterType="all_Board_VO">
+ 		<![CDATA[
+ 			select count(*) from console_board 
+ 			where id=#{id} and boardNO=#{boardNO} and title=#{title}
+ 		]]>
+ 	</select>
+ 	<!-- 0804김도경 추가 끝-->
+ 	
+ 	<!-- 김도경 0804신규 추가 -->
+ 	<delete id="deleteMemberActFreeBoard" parameterType="all_Board_VO">
+ 		<![CDATA[delete from free_board where id=#{id} and boardNO=#{boardNO}]]>
+ 	</delete>
+ 	
+ 	<delete id="deleteMemberActMobileBoard" parameterType="all_Board_VO">
+ 		<![CDATA[delete from mobile_board where id=#{id} and boardNO=#{boardNO}]]>
+ 	</delete>
+ 	
+ 	<delete id="deleteMemberActPcBoard" parameterType="all_Board_VO">
+ 		<![CDATA[delete from pc_board where id=#{id} and boardNO=#{boardNO}]]>
+ 	</delete>
+ 	
+ 	<delete id="deleteMemberActConsoleBoard" parameterType="all_Board_VO">
+ 		<![CDATA[delete from console_board where id=#{id} and boardNO=#{boardNO}]]>
+ 	</delete>
+ 	
+ 	<!-- 메인 관련 -->
+ 	<!-- 오늘 신규 가입한 유저 -->
+ 	<select id="countNewMember" resultType="int">
+ 		<![CDATA[
+ 			select count(*) from member where TO_char(join_date,'yyyy/mm/dd')= to_char(sysdate,'yyyy/mm/dd') and grade=0
+ 		]]>
+ 	</select>
+ 	
+ 	<!-- 어제  가입한 유저 -->
+ 	<select id="countLastDayNewMember" resultType="int">
+		<![CDATA[select count(*) from member where TO_char(join_date,'yyyy/mm/dd')= to_char(sysdate-1,'yyyy/mm/dd') and grade=0]]> 	
+ 	</select>
+ 	
+ 	<!-- 전체 방문자수 증가 -->
+ 	<insert id="setVisitTotalCount">
+ 		<![CDATA[INSERT INTO VISIT (V_DATE) VALUES (sysdate)]]>
+ 	</insert>
+ 	
+ 	<!-- 금일 방문자수 확인 증가 -->
+ 	<select id="getVisitTodayCount" resultType="int">
+ 		<![CDATA[select count(*) from visit where to_char(v_date,'yy/MM/dd') = to_char(sysdate, 'yy/MM/dd')]]>
+ 	</select>
+ 	
+ 	<!-- 어제 방문자수 확인 증가 -->
+ 	<select id="getLastVisitCount" resultType="int">
+ 		<![CDATA[
+ 			select count(*) from visit where to_char(v_date,'yy/MM/dd') = to_char(sysdate-1, 'yy/MM/dd')
+ 		]]>
+ 	</select>
+ 	
+ 	<!-- 신규 유저 출력 -->
+ 	
+ 	<select id="newMemberList" resultMap="MemberResult">
+ 		<![CDATA[select * from member where TO_char(join_date,'yyyy/mm/dd')= to_char(sysdate,'yyyy/mm/dd') and grade=0 ]]>
+ 	</select>
+ 	
+ 	<!-- 재전송할 이메일 얻기 --> 
+ 	<select id="getEmail" resultType="String" parameterType="String">
+ 		<![CDATA[
+			SELECT email
+			FROM member
+			WHERE id=#{id}
+ 		]]>
+	</select>
+	
+	<!-- 이메일 재설정 -->
+	<update id="changeEmail" parameterType="memberVO">
+	<![CDATA[
+	update member set email = #{email} where id=#{id}
+	]]>
+	</update>
+</mapper>

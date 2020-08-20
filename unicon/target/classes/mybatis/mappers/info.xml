@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.unicon.mappers.Info_Mapper">
+	<resultMap id="infoGame" type="info_VO">
+		<result property="id" column="id" />
+		<result property="game_code" column="game_code" />
+		<result property="game_name" column="game_name" />
+		<result property="big_category" column="big_category" />
+		<result property="small_category" column="small_category" />
+		<result property="genre" column="genre" />
+		<result property="release_date" column="release_date" />
+		<result property="price" column="price" />
+		<result property="age" column="age" />
+		<result property="min_system" column="min_system" />
+		<result property="recommen_system" column="recommen_system" />
+		<result property="registered_date" column="registered_date" />
+		<result property="menufacture" column="menufacture" />
+		<result property="share_company" column="share_company" />
+		<result property="content" column="content" />
+		<result property="link_1" column="link_1" />
+		<result property="link_2" column="link_2" />
+		<result property="link_3" column="link_3" />
+		<result property="link_4" column="link_4" />
+		<result property="hash_tag" column="hash_tag" />
+		<result property="hash_tag2" column="hash_tag2" />
+		<result property="hash_tag3" column="hash_tag3" />
+		<result property="rownum" column="rownum" />
+		<result property="votes" column="votes" />
+		<result property="votes1" column="votes1" />
+		<result property="votes2" column="votes2" />
+		<result property="votes3" column="votes3" />
+		<result property="play_type" column="play_type"/>
+	</resultMap>
+	
+	<!-- 0731 기도경 play_type resultmap에 추가 -->
+	
+	<select id="allgamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT *
+			FROM gmunicon.game_info			
+			ORDER BY game_code DESC
+		]]>
+	</select>
+
+	<select id="gamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT *
+       	  	FROM gmunicon.game_info
+        	WHERE small_category = #{small_category}
+         	ORDER BY game_code DESC
+		]]>
+	</select>
+	
+	<!-- <select id="pcgamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT game_code, game_name, genre, small_category, share_company
+			FROM gmunicon.game_info
+			WHERE small_category = 'pc'
+			ORDER BY game_code DESC
+		]]>
+	</select>
+	
+	<select id="mobilegamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT game_code, game_name, genre, small_category, share_company
+			FROM gmunicon.game_info
+			WHERE small_category = 'mobile'
+			ORDER BY game_code DESC
+		]]>
+	</select>
+	
+	<select id="xboxgamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT game_code, game_name, genre, small_category, share_company
+			FROM gmunicon.game_info
+			WHERE small_category = 'xbox'
+			ORDER BY game_code DESC
+		]]>
+	</select>
+	
+	<select id="psgamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT game_code, game_name, genre, small_category, share_company
+			FROM gmunicon.game_info
+			WHERE small_category = 'ps4'
+			ORDER BY game_code DESC
+		]]>
+	</select>
+	
+	<select id="nintendogamelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT game_code, game_name, genre, small_category, share_company
+			FROM gmunicon.game_info
+			WHERE small_category = 'switch'
+			ORDER BY game_code DESC
+		]]>
+	</select> -->
+	
+	<select id="gameview" resultMap="infoGame">
+		<![CDATA[
+			SELECT * 
+			FROM gmunicon.game_info
+			WHERE game_code = #{game_code}
+		]]>
+	</select>
+	
+	<select id="gamesearch" resultMap="infoGame">
+		SELECT *
+		FROM gmunicon.game_info
+		WHERE 
+		(game_name LIKE '%'||#{searchValue}||'%' OR
+		hash_tag LIKE '%'||#{searchValue}||'%' OR
+		hash_tag2 LIKE '%'||#{searchValue}||'%' OR
+		hash_tag3 LIKE '%'||#{searchValue}||'%') 
+		<choose>
+			<when test="small_category.equals('all')">
+				AND small_category is not null
+			</when>
+			<otherwise>
+				AND small_category LIKE #{small_category}
+			</otherwise>
+		</choose>
+		<!-- <choose>
+			<when test="genre.equals('pc')">
+				AND small_category like #{genre}
+			</when>
+			<when test="genre.equals('mobile')">
+				and small_category like #{genre}
+			</when>
+			<when test="genre.equals('xbox')">
+				and small_category like #{genre}
+			</when>
+			<when test="genre.equals('switch')">
+				and small_category like #{genre}
+			</when>
+			<when test="genre.equals('ps4')">
+				and small_category like #{genre}
+			</when>
+			<when test="genre.equals('all')">
+				and small_category is not null
+			</when>
+		</choose> -->
+	</select>
+
+	<select id="ranklist" resultMap="infoGame">
+		<![CDATA[
+			SELECT rownum, game_code, game_name, votes
+			FROM
+			(
+				SELECT rownum, game_code, game_name, votes
+  				FROM gmunicon.game_info
+  				ORDER BY votes DESC
+			)
+			WHERE rownum <=10
+		]]>
+	</select>
+
+	<insert id="votes" parameterType="info_VO">
+		INSERT INTO gmunicon.votes_detail
+		<choose>
+			<when test="vote1 !=null and vote2 !=null and vote3 !=null">
+				(id, vote1, vote2, vote3)
+				VALUES (#{id}, #{vote1}, #{vote2}, #{vote3})
+			</when>
+			<when test="vote1 != null and vote2 != null and vote3 == null">
+				(id, vote1, vote2)
+				VALUES (#{id}, #{vote1}, #{vote2})
+			</when>
+			<when test="vote1 != null and vote2 == null and vote3 == null">
+				(id, vote1)
+				VALUES (#{id}, #{vote1})
+			</when>
+		</choose>
+	</insert>
+
+	<update id="votesUp" parameterType="info_VO">
+      <![CDATA[
+         UPDATE gmunicon.game_info
+         SET votes = votes + 1
+         WHERE game_code IN(#{vote1}, #{vote2, jdbcType=VARCHAR}, #{vote3, jdbcType=VARCHAR}) 
+      ]]>
+	</update>
+
+	<select id="votesIdCheck" parameterType="map"
+		resultType="Integer">
+		<![CDATA[
+			SELECT COUNT(*)
+			FROM gmunicon.votes_detail
+			WHERE id = #{id}
+		]]>
+	</select>
+
+	<!-- <select id="tagsearch" resultMap="infoGame"> <![CDATA[ SELECT * FROM 
+		gmunicon.game_info WHERE hash_tag = #{hash_tag} OR hash_tag2 = #{hash_tag} 
+		OR hash_tag3 = #{hash_tag} ]]> </select> -->
+
+	<select id="recommendlist" resultMap="infoGame">
+		<![CDATA[
+			SELECT DISTINCT game.*
+			FROM game_info game, member_recommend rcmd
+			WHERE (rcmd.id = #{id})
+			AND
+			(game.small_category = rcmd.small_category
+			AND
+			(game.play_type = rcmd.play_type OR 
+			game.genre IN (rcmd.genre1, rcmd.genre2) OR
+			game.hash_tag IN (rcmd.hashtag1, rcmd.hashtag2, rcmd.hashtag3) OR
+			game.hash_tag2 IN (rcmd.hashtag1, rcmd.hashtag2, rcmd.hashtag3) OR
+			game.hash_tag3 IN (rcmd.hashtag1, rcmd.hashtag2, rcmd.hashtag3)))
+		]]>
+	</select>
+	
+	<!-- 김도경 추가 200706 -->
+	<!-- 검색 옵션 설정 -->
+	 <sql id="typeSearchCondition">
+	   <where>
+	   	<choose>
+   		<!-- <when test="searchType==null"> -->
+   		<!-- <when test="searchType==null">
+   			(game_code is not null)
+   		</when> -->
+   		
+   		<when test="searchType=='ALL'.toString()">
+   			(game_code is not null)
+   				<if test="searchKeyword!=null">
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   				</if>
+   		</when>
+   		
+   		<when test="searchType=='PC'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('pc','PC')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='MOBILE'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('mobile','MOBILE')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='CONSOLE'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('SWITCH','PS4','XBOX','switch','ps4','xbox')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='SWITCH'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('switch','SWITCH')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='PS4'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('ps4','PS4')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='XBOX'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('xbox','XBOX')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   	</choose>
+   </where>
+   </sql>
+   
+ 	<!--  페이징 고려 검색 -->  
+ 	<select id="selectSearchedGameWithPaging" resultMap="infoGame">
+ 		<![CDATA[SELECT * FROM ( SELECT *
+                  FROM ( SELECT /*+ INDEX_DESC(SYS_C0012306) */ 
+                        rownum recordno, game_info.*
+                       FROM game_info]]>
+        	<include refid="typeSearchCondition"></include>
+        
+        <![CDATA[
+        	) WHERE recordno <= #{currentPageNo} * #{recordsPerPage})
+             WHERE recordno >= (#{currentPageNo} * #{recordsPerPage})-(#{recordsPerPage}-1)
+        ]]>
+ 	
+ 	</select>
+ 	
+ 	<select id="baseGameTotalRow" resultType="int">
+ 	<![CDATA[select count(*) from game_info]]>
+ 	</select>
+ 	
+ 	<!-- 검색과 페이징을 고려한 총 행 개수 조회 메소드 -->
+ 	<select id="selectSearchedTotalRows" resultType="int">
+ 		<![CDATA[select count(*) from game_info]]>
+   		<where>
+	   	<choose>
+   		<!-- <when test="searchType==null"> -->
+   		<!-- <when test="searchType==null">
+   			(game_code is not null)
+   		</when> -->
+   		
+   		<when test="searchType=='ALL'.toString()">
+   			(game_code is not null)
+   				<if test="searchKeyword!=null">
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   				</if>
+   		</when>
+   		
+   		<when test="searchType=='PC'.toString()">
+   			(game_code is not null) 
+   				and small_category='pc'
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='MOBILE'.toString()">
+   			(game_code is not null) 
+   				and small_category='mobile'
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='CONSOLE'.toString()">
+   			(game_code is not null) 
+   				and small_category in ('switch','ps4','xbox')
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='SWITCH'.toString()">
+   			(game_code is not null) 
+   				and small_category='switch'
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='PS4'.toString()">
+   			(game_code is not null) 
+   				and small_category='ps4'
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   		
+   		<when test="searchType=='XBOX'.toString()">
+   			(game_code is not null) 
+   				and small_category='xbox'
+   					and (game_name like '%' || #{searchKeyword} || '%')
+   		</when>
+   	</choose>
+   </where>
+ 	</select>
+ 	
+ 	<!-- 게임 코드 불러오기 -->
+ 	<select id="gameInfoCode" resultType="String">
+ 		<![CDATA[select INFO_SEQ.nextval from dual]]>
+ 	</select>
+ 	
+ 	
+ 	<!-- 이미지 파일 번호 불러오기 -->
+ 	<select id="gameInfoImageNum" resultType="int">
+ 		<![CDATA[select GAME_INFO_IMAGEFILE_SEQ.nextval from dual]]>
+ 	</select>
+ 	
+ 	<!-- GAMEINFO테이블에 삽입 -->
+ 	<!--20200731 김도경  -->
+ 	<insert id="insertGameInfo" parameterType="info_VO">
+ 		<![CDATA[
+ 			INSERT INTO gmUnicon.game_info
+ 			(game_code, game_name, big_category, small_category, genre, release_date, price, age, 
+ 			min_system, recommen_system, registered_date, menufacture, share_company, content,
+ 			link_1, link_2, link_3, link_4, hash_tag, hash_tag2, hash_tag3, votes, play_type)
+			values (#{game_code}, #{game_name}, #{big_category}, #{small_category},
+			 #{genre}, #{st_release_date}, #{price}, #{age}, 
+			#{min_system}, #{recommen_system}, default, #{menufacture} , 
+			#{share_company}, #{content}, #{link_1}, #{link_2},#{link_3},#{link_4}, 
+			#{hash_tag}, #{hash_tag2}, #{hash_tag3},default, #{play_type})
+ 		]]>
+ 	</insert>
+ 	
+ 	<!-- GAMEINFOIMAGE테이블에 삽입 -->
+ 	<insert id="insertGameInfoLogoImage" parameterType="info_Image_VO">
+ 		<![CDATA[
+ 			INSERT INTO gmUnicon.GAME_INFO_IMAGEFILE 
+			values (#{imagefileno},#{imagefilename},default,#{game_code},1)
+ 		]]>
+ 	</insert>
+ 	
+ 	<!-- GAMEINFOIMAGE테이블에 삽입 -->
+ 	<insert id="insertGameInfoImage" parameterType="info_Image_VO">
+ 		<![CDATA[
+ 			INSERT INTO gmUnicon.GAME_INFO_IMAGEFILE 
+			values (#{imagefileno},#{imagefilename},default,#{game_code},default)
+ 		]]>
+ 	</insert>
+ 	
+ 	<select id="detail_Game_Info" parameterType="String" resultMap="infoGame">
+ 		<![CDATA[
+ 			select * from game_info where game_code=#{game_code}
+ 		]]>
+ 	</select>
+ 	
+ 	<!-- 0731 김도경 수정 -->
+ 	<update id="mod_Game_Info" parameterType="info_VO">
+ 		<![CDATA[
+ 			update game_info SET age=#{age}, min_system=#{min_system}, 
+ 			recommen_system=#{recommen_system}, content=#{content}, play_type=#{play_type}
+ 		]]>
+ 		
+ 		<if test="link_1!='' and link_1!=null">
+ 			, link_1=#{link_1}
+ 		</if>
+ 		
+ 		<if test="link_2!='' and link_2!=null">
+ 			, link_2=#{link_2}
+ 		</if>
+ 		
+ 		<if test="link_3!='' and link_3!=null">
+ 			, link_3=#{link_3}
+ 		</if>
+ 		
+ 		<if test="link_4!='' and link_4!=null">
+ 			, link_4=#{link_4}
+ 		</if>
+ 		
+ 		<if test="hash_tag!='' and hash_tag!=null">
+ 			, hash_tag=#{hash_tag}
+ 		</if>
+ 		
+ 		<if test="hash_tag2!='' and hash_tag2!=null">
+ 			, hash_tag2=#{hash_tag2}
+ 		</if>
+ 		
+ 		<if test="hash_tag3!='' and hash_tag3!=null">
+ 			, hash_tag3=#{hash_tag3}
+ 		</if>
+ 		
+ 		where game_code=#{game_code}
+ 	</update>
+ 	
+ 	
+ 	<delete id="delete_Game_Info" parameterType="String">
+ 		<![CDATA[
+ 			delete game_info where game_code=#{game_code}
+ 		]]>
+ 	</delete>
+ 	
+ 	<!-- 김도경 추가 200706 끝-->
+ 	
+ 	<select id="overlapGame" resultType="int">
+ 		<![CDATA[
+ 			select count(*) from game_info where small_category=#{small_category} AND game_name=#{game_name}
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="popularlist" resultMap="infoGame">
+ 		<![CDATA[
+ 			SELECT *
+			FROM (
+				SELECT game_code, game_name, genre, share_company
+				FROM game_info
+				WHERE game_info.big_category = #{big_category}
+				ORDER BY votes desc
+				)
+			WHERE rownum <= 3
+ 		]]>
+	</select>
+	
+	<select id="votelist" resultMap="infoGame">
+		<![CDATA[
+			SELECT *
+			FROM gmunicon.game_info
+			ORDER BY votes DESC
+		]]>
+	</select>
+</mapper>

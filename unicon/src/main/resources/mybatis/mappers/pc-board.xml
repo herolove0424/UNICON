@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.unicon.mappers.Pc_BoardMapper">
+
+	<resultMap id="PC_Board_Result" type="Pc_Board_VO">
+ 		<result property="boardNO" column="boardNO"/>
+ 		<result property="title" column="title"/>
+ 		<result property="content" column="content"/>
+ 		<result property="writeDate" column="writeDate"/>
+ 		<result property="viewCount" column="viewCount"/>
+ 		<result property="good" column="good"/>
+ 		<result property="id" column="id"/>
+ 		<result property="parentNO" column="parentNO"/>
+ 		<result property="status" column="status"/>
+ 	</resultMap>
+
+	<resultMap id="PC_Reply_Result" type="Pc_Board_Reply_VO">
+ 		<result property="level" column="level"/>
+ 		<result property="rep_boardNO" column="rep_boardNO"/>
+ 		<result property="rep_content" column="rep_content"/>
+ 		<result property="rep_writeDate" column="rep_writeDate"/>
+ 		<result property="rep_good" column="rep_good"/>
+ 		<result property="rep_id" column="rep_id"/>
+ 		<result property="rep_parentNO" column="rep_parentNO"/>
+ 		<result property="daedatNO" column="daedatNO"/>
+ 	</resultMap>
+ 	
+ 	
+ 	
+ 	
+ 	<!-- 검색기능 where 절 -->
+ 	<sql id="typeSearchCondition">
+	<where>
+		<choose>
+			<when test="searchType == null">
+				(boardNO > 0 AND parentNO = 0)
+			</when>
+			<when test="searchType == 'T'.toString()">
+				(boardNO > 0 AND parentNO = 0) AND (title LIKE '%'||#{searchKeyword}||'%')
+			</when>
+			<when test="searchType == 'C'.toString()">
+				(boardNO > 0 AND parentNO = 0) AND (content LIKE '%'||#{searchKeyword}||'%')
+			</when>
+			<when test="searchType == 'I'.toString()">
+				(boardNO > 0 AND parentNO = 0) AND (id LIKE '%'||#{searchKeyword}||'%')
+			</when>
+			<when test="searchType == 'TC'.toString()">
+				(boardNO > 0 AND parentNO = 0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR  (content LIKE '%'||#{searchKeyword}||'%'))
+			</when>
+			<when test="searchType == 'TI'.toString()">
+				(boardNO > 0 AND parentNO = 0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR   (id LIKE '%'||#{searchKeyword}||'%'))
+			</when>
+			<when test="searchType == 'TCI'.toString()">
+				(boardNO > 0 AND parentNO = 0) AND ((title LIKE '%'||#{searchKeyword}||'%')
+												  OR   (content LIKE '%'||#{searchKeyword}||'%')
+												  OR   (id LIKE '%'||#{searchKeyword}||'%'))
+			</when>
+		</choose>
+	</where>
+	</sql>
+ 	
+ 	<!-- 스프링 부트 개발 -->
+ 	
+ 	<!-- 페이징 검색 모든 경우.  -->
+	<select id="selectAllSearchedBoardsWithPaging" resultMap="PC_Board_Result">
+         <![CDATA[SELECT boardNO, parentNO, title, content, id, writeDate, viewcount
+             FROM ( SELECT *
+                  FROM ( SELECT  /*+ INDEX_DESC(pc_board SYS_C0011403) */
+                        rownum recordno, pc_board.*
+                       FROM gmUnicon.pc_board
+                       ]]>
+                       
+               <include refid="typeSearchCondition"></include>
+               order by writeDate DESC
+               
+         <![CDATA[
+         ) WHERE recordno <= #{currentPageNo} * #{recordsPerPage})
+             WHERE recordno >= (#{currentPageNo} * #{recordsPerPage})-(#{recordsPerPage}-1)]]>
+   
+   </select>
+ 	<!-- 총 행 개수 조회 메소드(페이징,검색고려) -->
+	<select id="selectSearchedTotalRowsCnt" resultType="int">
+		<![CDATA[
+			SELECT COUNT(*) FROM gmUnicon.pc_board
+		]]>
+			<include refid="typeSearchCondition"/>
+	</select>
+	
+    
+	<!-- 새 글쓰기 -->
+	<insert id="insertNewArticle" parameterType="java.util.Map">
+	
+		<selectKey keyProperty="seq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT pc_board_seq.nextval FROM DUAL ]]>
+		</selectKey>
+		
+		<![CDATA[ INSERT INTO gmUnicon.pc_board
+		    	        (boardNO, title, content, writedate, viewcount, good, id, parentno) 
+				  VALUES(#{seq}, #{title}, #{content}, default, default, default, #{id}, default ) ]]>
+	</insert> 
+	
+	<select id="currVal" resultType="int">
+		<![CDATA[ SELECT PC_BOARD_SEQ.currval FROM DUAL ]]>
+	</select>
+	
+	<!-- 상세보기 -->
+ 	<select id="viewArticle" resultType="Pc_Board_VO"   parameterType="int">
+		<![CDATA[ SELECT *
+		FROM gmUnicon.pc_board
+		WHERE boardNO = #{boardNO} ]]>
+	</select>
+	
+	<!-- 조회수 증가 -->
+	<update id="viewCount" parameterType="int">
+		<![CDATA[ UPDATE gmUnicon.pc_board SET viewcount = viewcount + 1
+				  WHERE boardNO = #{boardNO} ]]>
+	</update>
+	
+	<!-- 글 수정. -->
+	<update id="updateArticle" parameterType="Pc_Board_VO">
+		<![CDATA[ UPDATE gmUnicon.pc_board SET title=#{title}, content=#{content}
+				  WHERE boardNO=#{boardNO} ]]>
+	</update>
+
+	<!-- 글 삭제 -->
+	<delete id="deleteArticle" parameterType="int">
+		<![CDATA[ DELETE FROM pc_board WHERE boardNO = #{boardNO} ]]>
+	</delete>
+	
+	<!-- 글 삭제할때 글에 있는 댓글 삭제 하는구문 -->
+	<delete id="replyDeleteForDeleteArticle" parameterType="int">
+		<![CDATA[ DELETE FROM pc_board_reply WHERE rep_parentNO = #{boardNO} ]]>
+	</delete>
+	
+	<!-- 댓글 불러오기 -->
+	<select id="selectReplySearchedBoardsWithPaging" resultMap="PC_Reply_Result" parameterType="int">
+         <![CDATA[ select level, rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO, daedatNO
+				   from pc_board_reply
+				   WHERE rep_parentNO = #{boardNO}
+				   start with daedatNO = 0 
+				   connect by prior rep_boardNO = daedatNO
+				   order SIBLINGS by rep_writedate desc
+          ]]>
+    </select>
+    
+   <!-- 댓글 쓰기 -->
+   <insert id="insertReply" parameterType="java.util.Map">
+   		<selectKey keyProperty="seq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT pc_reply_seq.nextval FROM DUAL ]]>
+		</selectKey>
+		<![CDATA[ INSERT INTO gmUnicon.pc_board_reply
+		    	        (rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO, daedatNO) 
+				 ]]> 
+				 
+				<if test="daedatNO == null">
+				 <![CDATA[VALUES(#{seq}, #{rep_content}, default, default, #{rep_id}, #{rep_parentNO}, default ) ]]>
+				</if>
+				
+				<if test="daedatNO != null">
+				 <![CDATA[VALUES(#{seq}, #{rep_content}, default, default, #{rep_id}, #{rep_parentNO}, #{daedatNO} ) ]]>
+				</if> 	
+   </insert>
+	
+	<!-- 댓글 수정 -->
+	<update id="updateReply" parameterType="Pc_Board_Reply_VO">
+		<![CDATA[ UPDATE gmUnicon.pc_board_reply SET rep_content=#{rep_content}
+				  WHERE rep_boardNO=#{rep_boardNO} ]]>
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="deleteReply" parameterType="int">
+		<![CDATA[ DELETE FROM pc_board_reply WHERE rep_boardNO = #{rep_boardNO} ]]>
+	</delete>
+	
+	<!-- 0806김도경 추가 공지사항 출력 -->
+	<select id="exposalNotice" resultType="notice_VO">
+		<![CDATA[
+			select * from admin_notice where exposal=1 order by writedate desc
+		]]>
+	</select>
+	
+	
+</mapper>

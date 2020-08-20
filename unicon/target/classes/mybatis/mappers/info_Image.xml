@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.project.unicon.mappers.Info_Image_Mapper">
+
+	<resultMap id="info_Image_Result" type="info_Image_VO">
+ 		<result property="imagefileno" column="imagefileno"/>
+ 		<result property="imagefilename" column="imagefilename"/>
+ 		<result property="regdate" column="regdate"/>
+ 		<result property="game_code" column="game_code"/>
+ 		<result property="logo_status" column="logo_status"/>
+ 	</resultMap>
+ 	
+ 	<!-- 이미지 리스트 불러오기 -->
+ 	<select id="detail_Game_Image_Info" resultMap="info_Image_Result" parameterType="String">
+ 		<![CDATA[
+ 			select * from game_info_imagefile where game_code=#{game_code} and logo_status=0
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="detail_Game_Image_Logo_Info" resultMap="info_Image_Result" parameterType="String">
+ 		<![CDATA[
+ 			select * from game_info_imagefile where game_code=#{game_code} and logo_status=1
+ 		]]>
+ 	</select>
+ 	
+ 	<select id="logolist" resultMap="info_Image_Result" parameterType="String">
+ 		<![CDATA[
+ 			select game_code, imagefilename from game_info_imagefile where logo_status=1
+ 		]]>
+ 	</select>
+ 	
+ 	<update id="update_Game_Image" parameterType="info_Image_VO">
+ 		<![CDATA[
+ 			update game_info_imagefile 
+ 			set imagefilename=#{imagefilename} 
+ 			where game_code=#{game_code}and imagefilename=#{oldimagefilename}
+ 		]]>
+ 	</update>
+ 	
+ 	<delete id="delete_Game_Image_Info" parameterType="String">
+ 		<![CDATA[
+ 			delete game_info_imagefile where game_code=#{game_code}
+ 		]]>
+ 	</delete>
+ 	
+  </mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.unicon.mappers.MyWall_Mapper">
+	
+	<resultMap id="MyWall_Result" type="MyWall_VO">
+ 		<result property="boardNO" column="boardNO"/>
+ 		<result property="title" column="title"/>
+ 		<result property="content" column="content"/>
+ 		<result property="writeDate" column="writeDate"/>
+ 		<result property="id" column="id"/>
+ 	</resultMap>
+ 	
+ 	<resultMap id="MyWall_Reply_Result" type="MyWall_Reply_VO">
+ 		<result property="rep_boardNO" column="rep_boardNO"/>
+ 		<result property="rep_content" column="rep_content"/>
+ 		<result property="rep_id" column="rep_id"/>
+ 		<result property="rep_writeDate" column="rep_writeDate"/>
+ 		<result property="rep_parentNO" column="rep_parentNO"/>
+ 	</resultMap>
+    
+    <!-- 담벼락 리스트 -->
+    <select id="myWall" resultType="MyWall_VO" parameterType="String">
+    	<![CDATA[ SELECT * FROM mywall WHERE id = #{id} ORDER BY writedate DESC ]]>	
+    </select>
+    
+    <!-- 새 글 쓰기 -->
+	<insert id="addWallArticle" parameterType="java.util.Map">
+	<selectKey keyProperty="wall_seq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT mywall_seq.nextval FROM DUAL ]]>
+	</selectKey>
+		<![CDATA[ INSERT INTO mywall (boardNO, title, content, writedate, id)
+				  VALUES (#{wall_seq}, #{title}, #{content}, default, #{id} )
+				 ]]>
+		
+	</insert>   
+	
+	<!-- 게시글 수정 -->
+	<update id="updateWallArticle" parameterType="MyWall_VO">
+		<![CDATA[ UPDATE mywall SET content = #{content}
+    			  WHERE boardNO = #{boardNO} ]]>	
+	</update> 
+    
+    <!-- 게시글 삭제 -->
+    <delete id="removeArticle" parameterType="int">
+    	<![CDATA[ DELETE FROM mywall WHERE boardNO = #{boardNO} ]]>	
+    </delete>
+    
+    <!-- 담벼락 댓글 리스트 -->
+    <select id="myWallReplyList" resultMap="MyWall_Reply_Result" parameterType="int">
+    	<![CDATA[ SELECT rep_boardNO, rep_content, rep_writedate, rep_id, rep_parentNO
+    			  FROM mywall_reply
+    			  WHERE rep_parentNO = #{boardNO}
+    			  ORDER BY rep_writedate DESC ]]>	
+    </select>
+    
+    <!-- 댓글 삭제 -->
+    <delete id="removeWallReply" parameterType="int">
+    	<![CDATA[ DELETE FROM mywall_reply WHERE rep_boardNO = #{rep_boardNO} ]]>
+    </delete>
+    
+    <!-- 게시글 삭제전 댓글 먼저 삭제 -->
+    <delete id="removeWallReplyBeforeArticle" parameterType="int">
+    	<![CDATA[ DELETE FROM mywall_reply WHERE rep_parentNO = #{boardNO} ]]>
+    </delete>
+    
+    <!-- 댓글 입력 -->
+    <insert id="insertWallReply" parameterType="java.util.Map">
+    	<selectKey keyProperty="reply_seq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT mywall_reply_seq.nextval FROM DUAL ]]>
+		</selectKey>
+    	<![CDATA[ INSERT INTO mywall_reply (rep_boardNO, rep_content, rep_writedate, rep_id, rep_parentNO)
+ 				  VALUES (#{reply_seq}, #{rep_content}, default, #{rep_id}, #{rep_parentNO} )  	
+    			 ]]>
+    </insert>
+    
+    <!-- 댓글 수정 -->
+    <update id="updateWallReply" parameterType="MyWall_Reply_VO">
+    	<![CDATA[ UPDATE mywall_reply SET rep_content = #{rep_content}
+    			  WHERE rep_boardNO = #{rep_boardNO} ]]>
+    </update>
+    
+</mapper>

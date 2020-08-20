@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.unicon.mappers.TimeLine_Mapper">
+	<resultMap id="timeLine" type="timeLine_VO">
+		<result property="id" column="id" />
+		<result property="id_1" column="id_1" />
+		<result property="id_2" column="id_2" />
+		<result property="status" column="status" />
+		<result property="count" column="count" />
+		<result property="nickname" column="nickname" />
+		<result property="imageFileName" column="imageFileName" />
+	</resultMap>
+	
+	<resultMap id="member" type="memberVO">
+		<result property="nickname" column="nickname" />
+		<result property="id" column="id" />
+	</resultMap>
+	
+	
+	<!-- 친구 목록 -->
+	<select id="friendList" resultMap="timeLine">
+		<![CDATA[
+			SELECT a.id_2, b.nickname
+			FROM gmunicon.friend a join gmunicon.member b
+			on a.id_2 = b.id
+			WHERE id_1 =#{id} and status=1
+		]]>
+	</select>
+	
+	<!-- 김도경 수정 부분만 닉네임이 같아도 다 검색되도록 -->
+	<!-- <select id="nicknameSearch" resultMap="timeLine" resultType="timeLine_VO" parameterType="timeLine_VO"> -->
+	<select id="nicknameSearch" resultMap="timeLine" parameterType="String">
+		SELECT nickname, id
+		FROM gmunicon.member
+		where upper(nickname) like upper('%'||#{nickname} ||'%') AND grade = 0
+	</select>
+	
+	<!-- 친구 신청 목록 -->
+	<select id="friendRequestList" resultMap="timeLine">
+		<![CDATA[
+			SELECT a.id_2, b.nickname,b.imageFileName
+			FROM gmunicon.friend a join gmunicon.member b
+			on a.id_2 = b.id
+			WHERE id_1 =#{id} and status=0
+		]]>
+	</select>
+	
+	<!-- 친구 신청 받은 목록 -->
+	<select id="friendAcceptList" resultMap="timeLine">
+		<![CDATA[
+			SELECT a.id_1, b.nickname
+			FROM gmunicon.friend a join gmunicon.member b
+			on a.id_1 = b.id
+			WHERE id_2 =#{id} and status=0
+		]]>
+	</select>
+	
+	<select id="friendCount" parameterType="map" resultType="Integer">
+		<![CDATA[
+			SELECT count(*)
+			FROM gmunicon.friend
+			WHERE id_1 =#{id} and status=1
+		]]>
+	</select>
+	
+	<!-- 친구 요청 취소 -->
+	<delete id="friendRequestDelete" parameterType="timeLine_VO">
+		DELETE FROM gmunicon.friend
+		WHERE id_1=#{id_1} and id_2=#{id_2}
+	</delete>
+	
+	
+	<!-- 친구 신청 -->
+	<insert id="friendRequest" parameterType="timeLine_VO">
+		<![CDATA[
+			INSERT INTO gmunicon.friend values(#{id_1}, #{id_2}, 0)
+		]]>
+	</insert>
+	
+	
+	<!-- 친구 수락 -->
+	<update id="friendAccept1" parameterType="timeLine_VO">
+		<![CDATA[
+			UPDATE gmunicon.friend 
+			SET status = 1
+			WHERE id_1 = #{id_1} and id_2 = #{id_2}
+		]]>
+	</update>
+	
+	<insert id="friendAccept2" parameterType="timeLine_VO">
+		<![CDATA[
+			INSERT INTO gmunicon.friend values(#{id_2}, #{id_1}, 1)
+		]]>
+	</insert>
+	
+	<!-- 친구 거절 -->
+	<delete id="friendReject" parameterType="timeLine_VO">
+		DELETE FROM gmunicon.friend
+		WHERE id_1=#{id_1} and id_2=#{id_2}
+	</delete>
+	
+	<!-- 친구 삭제 -->
+	<delete id="friendDelete" parameterType="timeLine_VO">
+		DELETE FROM gmunicon.friend
+		WHERE (id_1=#{id_1} and id_2=#{id_2}) or (id_1=#{id_2} and id_2=#{id_1})
+	</delete>
+	
+	<!-- 친구 여부, 신청 여부 확인 -->
+	<select id="alreadyFriend" resultMap="timeLine">
+		<![CDATA[select * from friend where (id_1=#{id_1} and id_2=#{id_2}) or (id_1=#{id_2} and id_2=#{id_1})]]>
+	</select>
+	
+	<!-- 친구 여부, 신청 여부 확인 -->
+	<select id="alreadyFriendCount" resultType="int">
+		<![CDATA[select count(*) from friend where (id_1=#{id_1} and id_2=#{id_2}) or (id_1=#{id_2} and id_2=#{id_1})]]>
+	</select>
+	
+	<!-- 0813 도경 추가 -->
+	<select id="countFriendAccept" resultType="int">
+		<![CDATA[
+			SELECT count(*) FROM gmunicon.friend WHERE id_2 =#{id} and status=0
+		]]>
+	</select>
+	
+
+</mapper>

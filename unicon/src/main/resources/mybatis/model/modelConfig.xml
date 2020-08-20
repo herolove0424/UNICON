@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration 	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+
+	<typeAliases>
+		<typeAlias type="com.project.unicon.vo.Info_VO" alias="info_VO" />
+		<typeAlias type="com.project.unicon.vo.Review_VO" alias="review_VO" />
+		<typeAlias type="com.project.unicon.vo.Member_VO" alias="memberVO" />
+		<typeAlias type="com.project.unicon.vo.Info_Image_VO" alias="info_Image_VO" />
+		<typeAlias type="com.project.unicon.vo.Pc_Board_VO"  alias="Pc_Board_VO" />
+		<!-- 2020.07.27 존잘러 민우 추가 하면서 통합하는 pagingDTO 수정 조금 했음 P -> p 정도 -->
+		<typeAlias type="com.project.unicon.vo.Pc_Board_Reply_VO"  alias="Pc_Board_Reply_VO" />
+		<!-- 2020/08/03 민우 추가 -->
+		<typeAlias type="com.project.unicon.vo.Free_Board_VO"  alias="Free_Board_VO" />
+		<typeAlias type="com.project.unicon.vo.Mobile_Board_VO"  alias="Mobile_Board_VO" />
+		<typeAlias type="com.project.unicon.vo.Console_Board_VO"  alias="Console_Board_VO" />
+		<typeAlias type="com.project.unicon.vo.Free_Board_Reply_VO"  alias="Free_Board_Reply_VO" />
+		<typeAlias type="com.project.unicon.vo.Mobile_Board_Reply_VO"  alias="Mobile_Board_Reply_VO" />
+		<typeAlias type="com.project.unicon.vo.Console_Board_Reply_VO"  alias="Console_Board_Reply_VO" />
+		<!-- 2020/08/03 추가 끝(민우) -->
+		<typeAlias type="common.paging.PagingDTO"  alias="pagingDTO" />
+		<typeAlias type="com.project.unicon.vo.Admin_Notice_VO"  alias="notice_VO" />
+		<typeAlias type="com.project.unicon.vo.Jjim_VO" alias="jjimVO" />
+		
+		<!-- 0804도경 추가 -->
+		<typeAlias type="com.project.unicon.vo.All_Board_VO" alias="all_Board_VO" />
+		<!-- 0810도경 추가 -->
+		<typeAlias type="com.project.unicon.vo.Message_Box_VO" alias="message_VO" />
+		<!-- 0810 민우 추가 -->
+		<typeAlias type="com.project.unicon.vo.MyWall_VO" alias="MyWall_VO" />
+		<typeAlias type="com.project.unicon.vo.MyWall_Reply_VO" alias="MyWall_Reply_VO" />
+		<typeAlias type="com.project.unicon.vo.All_Board_Reply_VO" alias="all_Board_Reply_VO" />
+		
+		<!-- 0812 도경추가 -->
+		<typeAlias type="com.project.unicon.vo.TimeLine_VO" alias="timeLine_VO" />
+	</typeAliases>
+</configuration>

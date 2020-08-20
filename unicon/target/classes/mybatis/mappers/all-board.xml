@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.unicon.mappers.All_BoardMapper">
+	
+	<resultMap id="All_Board_Result" type="all_Board_VO">
+ 		<result property="boardNO" column="boardNO"/>
+ 		<result property="title" column="title"/>
+ 		<result property="content" column="content"/>
+ 		<result property="writeDate" column="writeDate"/>
+ 		<result property="viewCount" column="viewCount"/>
+ 		<result property="good" column="good"/>
+ 		<result property="id" column="id"/>
+ 		<result property="parentNO" column="parentNO"/>
+ 		<result property="status" column="status"/>
+ 		<result property="platform" column="platform"/>
+ 	</resultMap>
+ 	
+ 	<resultMap id="All_Reply_Result" type="all_Board_Reply_VO">
+ 		<result property="rep_boardNO" column="rep_boardNO"/>
+ 		<result property="rep_content" column="rep_content"/>
+ 		<result property="rep_writeDate" column="rep_writeDate"/>
+ 		<result property="rep_good" column="rep_good"/>
+ 		<result property="rep_id" column="rep_id"/>
+ 		<result property="rep_parentNO" column="rep_parentNO"/>
+ 	</resultMap>
+	
+	<!-- 타임라인에 친구가 쓴 글 불러오는 구문 -->
+	<select id="timeLine" resultType="all_Board_VO" parameterType="String">
+		<![CDATA[ SELECT * FROM
+					(SELECT * FROM free_board 
+					UNION ALL
+					SELECT * from mobile_board 
+					UNION ALL
+					SELECT * FROM pc_board
+					UNION ALL 
+					SELECT boardNO, title, content, writedate,viewcount, good, id, parentNO, status FROM CONSOLE_BOARD
+					) WHERE id IN ( SELECT id_2 FROM friend 
+									  			   WHERE id_1=#{id} AND status=1) order by writedate desc]]>
+	</select>
+	
+	<!-- 댓글 불러오기 -->
+	<select id="callReply" resultMap="All_Reply_Result" parameterType="int">
+         
+         <![CDATA[  select rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO ]]>
+		 
+		 <if test="status == 1">	
+		 <![CDATA[	from free_board_reply ]]>
+		 </if>
+		 <if test="status == 2">	
+		 <![CDATA[	from mobile_board_reply ]]>
+		 </if>
+		 <if test="status == 3">	
+		 <![CDATA[	from pc_board_reply ]]>
+		 </if>
+		 <if test="status == 4">	
+		 <![CDATA[	from console_board_reply ]]>
+		 </if>
+		
+		 <![CDATA[
+					WHERE rep_parentNO = #{boardNO}
+					order by rep_writedate desc
+          ]]>
+    </select>
+    
+    <!-- 댓글 삭제하기 -->
+    <delete id="removeReply" parameterType="int">
+    	
+    	<![CDATA[ DELETE ]]>
+    	
+    	<if test="status == 1">	
+		 <![CDATA[	from free_board_reply ]]>
+		 </if>
+		 <if test="status == 2">	
+		 <![CDATA[	from mobile_board_reply ]]>
+		 </if>
+		 <if test="status == 3">	
+		 <![CDATA[	from pc_board_reply ]]>
+		 </if>
+		 <if test="status == 4">
+		 <![CDATA[	from console_board_reply ]]>
+		 </if>
+    	
+    	<![CDATA[ WHERE rep_boardNO = #{rep_boardNO} ]]>
+    	
+    </delete>
+    
+    <!-- 댓글 입력 Free -->
+    <insert id="timeLineInsertReplyFree" parameterType="java.util.Map">
+   		<selectKey keyProperty="freeSeq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT free_reply_seq.nextval FROM DUAL ]]>
+		</selectKey>
+   		<![CDATA[	INSERT INTO gmUnicon.free_board_reply
+		    	        (rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO, daedatNO)
+		            VALUES(#{freeSeq}, #{rep_content}, default, default, #{rep_id}, #{rep_parentNO}, default ) ]]>
+   	</insert>
+   	<!-- 댓글 입력 Mobile -->
+    <insert id="timeLineInsertReplyMobile" parameterType="java.util.Map">
+   		<selectKey keyProperty="mobileSeq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT mobile_reply_seq.nextval FROM DUAL ]]>
+		</selectKey>
+   		<![CDATA[	INSERT INTO gmUnicon.mobile_board_reply
+		    	        (rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO, daedatNO)
+		            VALUES(#{mobileSeq}, #{rep_content}, default, default, #{rep_id}, #{rep_parentNO}, default ) ]]>
+   	</insert>
+   	<!-- 댓글 입력 Pc -->
+    <insert id="timeLineInsertReplyPc" parameterType="java.util.Map">
+   		<selectKey keyProperty="pcSeq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT pc_reply_seq.nextval FROM DUAL ]]>
+		</selectKey>
+   		<![CDATA[	INSERT INTO gmUnicon.pc_board_reply
+		    	        (rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO, daedatNO)
+		            VALUES(#{pcSeq}, #{rep_content}, default, default, #{rep_id}, #{rep_parentNO}, default ) ]]>
+   	</insert>
+   	<!-- 댓글 입력 Console -->
+    <insert id="timeLineInsertReplyConsole" parameterType="java.util.Map">
+   		<selectKey keyProperty="consoleSeq" order="BEFORE" resultType="int">
+			<![CDATA[ SELECT console_reply_seq.nextval FROM DUAL ]]>
+		</selectKey>
+   		<![CDATA[	INSERT INTO gmUnicon.console_board_reply
+		    	        (rep_boardNO, rep_content, rep_writedate, rep_good, rep_id, rep_parentNO, daedatNO)
+		            VALUES(#{consoleSeq}, #{rep_content}, default, default, #{rep_id}, #{rep_parentNO}, default ) ]]>
+   	</insert>
+   	
+   	<!-- 댓글 수정 Free -->
+   	<update id="timeLineUpdateReplyFree" parameterType="all_Board_Reply_VO">
+   		<![CDATA[ UPDATE gmUnicon.free_board_reply SET rep_content=#{rep_content}
+				  WHERE rep_boardNO=#{rep_boardNO} ]]>
+   	</update>
+   	
+   	<!-- 댓글 수정 mobile -->
+   	<update id="timeLineUpdateReplyMobile" parameterType="all_Board_Reply_VO">
+   		<![CDATA[ UPDATE gmUnicon.mobile_board_reply SET rep_content=#{rep_content}
+				  WHERE rep_boardNO=#{rep_boardNO} ]]>
+   	</update>
+   	
+   	<!-- 댓글 수정 Pc -->
+   	<update id="timeLineUpdateReplyPc" parameterType="all_Board_Reply_VO">
+   		<![CDATA[ UPDATE gmUnicon.pc_board_reply SET rep_content=#{rep_content}
+				  WHERE rep_boardNO=#{rep_boardNO} ]]>
+   	</update>
+   	
+   	<!-- 댓글 수정 Console -->
+   	<update id="timeLineUpdateReplyConsole" parameterType="all_Board_Reply_VO">
+   		<![CDATA[ UPDATE gmUnicon.console_board_reply SET rep_content=#{rep_content}
+				  WHERE rep_boardNO=#{rep_boardNO} ]]>
+   	</update>
+   	
+   	<!-- 메인 인기 게시글 불러오기 -->
+      <!-- PC -->
+      <select id="pc_board" resultType="all_Board_VO">
+         <![CDATA[
+            SELECT *
+         FROM (
+               SELECT *
+               FROM pc_board
+               ORDER BY viewcount DESC
+               )
+            WHERE rownum <= 3
+         ]]>
+      </select>
+      
+      <!-- Mobile -->
+      <select id="mobile_board" resultType="all_Board_VO">
+         <![CDATA[
+            SELECT *
+         FROM (
+               SELECT *
+               FROM mobile_board
+               ORDER BY viewcount DESC
+               )
+            WHERE rownum <= 3
+         ]]>
+      </select>
+      
+      <!-- Console -->
+      <select id="console_board" resultType="all_Board_VO">
+         <![CDATA[
+            SELECT *
+         FROM (
+               SELECT *
+               FROM console_board
+               ORDER BY viewcount DESC
+            )
+            WHERE rownum <= 3
+         ]]>
+      </select>
+      
+      <!-- Free -->
+      <select id="free_board" resultType="all_Board_VO">
+         <![CDATA[
+            SELECT *
+         FROM (
+               SELECT *
+               FROM free_board
+               ORDER BY viewcount DESC
+               )
+            WHERE rownum <= 3
+         ]]>
+      </select>
+    
+</mapper>

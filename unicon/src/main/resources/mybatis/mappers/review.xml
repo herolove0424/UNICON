@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.unicon.mappers.Review_Mapper">
+	<resultMap id="review" type="review_VO">
+		<result property="review_code" column="review_code" />
+		<result property="game_code" column="game_code" />
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="writedate" column="writedate" />
+		<result property="score" column="score" />
+		<result property="goods_count" column="goods_count" />
+	</resultMap>
+
+	<select id="reviewlist" resultMap="review">
+		<![CDATA[
+			SELECT *
+			FROM gmunicon.review
+			WHERE game_code = #{game_code}
+			ORDER BY writedate DESC
+		]]>
+	</select>
+
+	<insert id="insertReview" parameterType="review_VO">
+		<![CDATA[
+			INSERT INTO gmunicon.review(review_code, game_code, id, content, score)
+			VALUES(REVIEW_SEQ.NEXTVAL ,#{game_code}, #{id}, #{content}, #{score})
+		]]>
+	</insert>
+
+	<update id="goodsUpCount" parameterType="review_VO">
+		<![CDATA[
+			UPDATE gmunicon.review 
+			SET goods_count = goods_count +1
+			WHERE review_code = #{review_code}
+		]]>
+	</update>
+
+	<insert id="insertReviewDetail" parameterType="review_VO">
+		<![CDATA[
+			INSERT INTO gmunicon.goods_detail
+			VALUES (#{review_code}, #{id})
+		]]>
+
+	</insert>
+
+	<select id="goodsIdCheck" parameterType="map" resultType="Integer">
+		<![CDATA[
+			SELECT COUNT(*)
+			FROM gmunicon.goods_detail
+			WHERE id = #{id} AND review_code = #{review_code}
+		]]>
+	</select>
+
+	<delete id="reviewDelete" parameterType="review_VO">
+		DELETE FROM gmunicon.review
+		WHERE review_code = #{review_code} AND id = #{id}
+	</delete>
+	
+	<!-- 0805 김도경 페이징 들어간 게임 리뷰 출력 -->
+	
+	<select id="manageReviewWithPaging" resultMap="review">
+		<![CDATA[
+			SELECT * FROM ( SELECT *
+                  FROM ( SELECT /*+ INDEX_DESC(SYS_C0012423) */ 
+                        rownum recordno, review.* 
+                       FROM review 
+                   ORDER by writedate DESC )  WHERE recordno <= #{currentPageNo} * #{recordsPerPage} )
+             WHERE recordno >= (#{currentPageNo} * #{recordsPerPage})-(#{recordsPerPage}-1)
+		]]>
+	</select>
+	
+	<select id="manageReviewWithPagingCount" resultType="int">
+		<![CDATA[
+			select count(*) from review
+		]]>
+	</select>
+	
+	<select id="todayReview" resultMap="review">
+		<![CDATA[
+			select * from review where TO_char(writedate,'yyyy/mm/dd')= to_char(sysdate,'yyyy/mm/dd')
+		]]>
+	</select>
+	
+	<select id="searchDayReview" resultMap="review">
+		<![CDATA[
+			SELECT * FROM ( SELECT *
+                  FROM ( SELECT /*+ INDEX_DESC(SYS_C0012423) */ 
+                        rownum recordno, review.*
+                       FROM review where writedate BETWEEN #{startDay} and #{endDay} ) WHERE recordno <= #{currentPageNo} * #{recordsPerPage}  )
+             WHERE recordno >= (#{currentPageNo} * #{recordsPerPage})-(#{recordsPerPage}-1)
+		]]>
+	</select>
+	
+	<select id="searchDayReviewCount" resultType="int">
+		<![CDATA[
+			select count(*) from review where writedate BETWEEN #{startDay} and #{endDay}
+		]]>
+	</select>
+	
+	<delete id="deleteReview" parameterType="int">
+		<![CDATA[
+			delete from review where review_code=#{review_code}
+		]]>
+	</delete>
+	
+	<!-- 0810오늘 등록된 게임 리뷰 -->
+   	<select id="todayReviewCount" resultType="int">
+   		<![CDATA[
+   		SELECT count(*) from review  where to_char(writedate,'yy/MM/dd') = to_char(sysdate, 'yy/MM/dd')
+   		]]>
+   	</select>
+   	
+   	<!-- 어제 등록된 게임 리뷰 -->
+   	<select id="lastDayReviewCount" resultType="int">
+   		<![CDATA[
+   		SELECT count(*) from review  where to_char(writedate,'yy/MM/dd') = to_char(sysdate-1, 'yy/MM/dd')
+   		]]>
+   	</select>
+
+</mapper>
